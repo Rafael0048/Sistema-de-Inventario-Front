@@ -11,8 +11,22 @@ import 'vuetify/styles'
 
 export default createVuetify({
   theme: {
-    defaultTheme: 'system',
-    utilities: false,
+    defaultTheme: 'dark', 
+    themes: {
+      dark: {
+        dark: true,
+        colors: {
+          background: '#121212', 
+          surface: '#1E1E1E',  
+          primary: '#3262a8',    
+          secondary: '#424242',  
+          accent: '#82B1FF',
+          error: '#FF5252',
+          success: '#4CAF50',
+          warning: '#FB8C00',
+        }
+      }
+    }
   },
   display: {
     mobileBreakpoint: 'md',

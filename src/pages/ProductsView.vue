@@ -14,12 +14,29 @@ const headers = ref([
     { title: 'Lote', value: 'lot' },
     {title : 'Acciones', value: 'actions'}
 ])
+const fields = ref([
+    { title: 'Nombre', value: 'name', type: 'text' },
+    { title: 'Altura', value: 'height', type: 'text' },
+    { title: 'Ancho', value: 'width', type: 'text' },
+    { title: 'Largo', value: 'length', type: 'text' }
+])
+const subTableHeaders = ref([
+    { title: 'ID', value: 'lotId' },
+    { title: 'Cantidad', value: 'quantity' },
+    { title: 'Fecha de compra', value: 'date' },
+    {title : 'Precio', value: 'price'}
+])
+const subFields = ref([
+    { title: 'Cantidad', value: 'quantity', type: 'number' },
+    { title: 'Fecha de compra', value: 'date', type: 'date'  },
+    {title : 'Precio', value: 'price', type: 'number'}
+])
 onMounted(() => {
-    productStore.getProducts()
+    productStore.getItem()
 })
 </script>
 <template>
-  <TableBase :items="productStore.products" :headers="headers" />
+  <TableBase :items="productStore.products" :headers="headers" :fields = "fields" :store="productStore" :subTableHeaders="subTableHeaders" :nameSpace="'Productos'" :subNameSpace="'Lotes'" :subFields="subFields" />
 
 </template>
 <style scoped>

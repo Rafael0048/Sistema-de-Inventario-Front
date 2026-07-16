@@ -1,25 +1,58 @@
 <script setup>
     import {ref} from 'vue'
     const openModal = ref(false)
+    const loading = ref(false)
+    const data = ref({})
+    const props = defineProps({
+        fields: {
+            type: Array,
+            required: true
+        },
+        store: {
+            type: Object,
+            required: true
+        },
+        nameSpace: {
+             type: String,
+             required: true
+        },
+        fatherId: {
+            type : Object
+        }
 
+    })
+   async function saveData(){
+    try{
+        loading.value = true
+        if(props.fatherId){
+            await props.store.addSubItem(data.value, props.fatherId)
+        }else{
+            await props.store.addItem(data.value)
+        }
+        loading.value = false
+        openModal.value = false
+    }
+    catch(error){
+        loading.value = false
+        console.error('Error agregando un item:', error)
+    }
+
+    }
 </script>
 <template>
-    <v-btn color="primary" @click="openModal = true">Agregar</v-btn>
+    <v-btn color="primary" @click="openModal = true" class="mb-2 mt-2">Agregar</v-btn>
     <v-dialog v-model="openModal" max-width="500">
         <v-card>
-            <v-card-title>Agregar Producto</v-card-title>
+            <v-card-title>Agregar {{ props.nameSpace }}</v-card-title>
             <v-card-text>
                 <v-form>
-                    <v-text-field label="Nombre" required></v-text-field>
-                    <v-text-field label="Altura" required></v-text-field>
-                    <v-text-field label="Ancho" required></v-text-field>
-                    <v-text-field label="Largo" required></v-text-field>
+                   <v-text-field v-for="field in props.fields" :key="field.value" v-model="data[field.value]" :label="field.title" :type="field.type" />
                 </v-form>
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
                 <v-btn color="primary" @click="openModal = false">Cancelar</v-btn>
-                <v-btn color="primary">Guardar</v-btn>
+                <v-btn color="primary" @click="saveData()" :loading="loading">Guardar</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>
