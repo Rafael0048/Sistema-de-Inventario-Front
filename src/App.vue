@@ -15,7 +15,15 @@
       v-model="drawer"
       :location="$vuetify.display.mobile ? 'bottom' : undefined"
     >
-      <v-list :items="items"></v-list>
+      <v-list >
+        <v-list-item
+            v-for="(item, index) in items"
+            :key="index"
+            :title="item.title"
+            :prepend-icon="item.icon"
+            :to="item.to"
+          />
+      </v-list>
     </v-navigation-drawer>
 
     <v-main>
@@ -29,8 +37,8 @@ import { ref } from 'vue'
 
 const drawer = ref(false) 
 const items = ref([
-  { title: 'Home', icon: 'mdi-home' },
-  { title: 'About', icon: 'mdi-information' },
-  { title: 'Contact', icon: 'mdi-phone' },
+  { title: 'Home', icon: 'mdi-home' , to:'/' },
+  { title: 'Productos', icon: 'mdi-information', to:'/productos' },
+  { title: 'Login', icon: 'mdi-phone', to:'/login' },
 ])
 </script>

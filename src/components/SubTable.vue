@@ -1,11 +1,9 @@
 <script setup>
  import {ref, onMounted} from 'vue'
  import AddModal from './AddModal.vue'
+ const items = ref({})
  const props = defineProps({
-        items: {
-            type: Array,
-            required: true
-        },
+    
         headers: {
             type: Array,
             required: true
@@ -24,6 +22,10 @@
         father : {
             type : Object,
             required : true
+        },
+        nameSpace : {
+            type : String,
+            required: true
         }
        
     })
@@ -59,13 +61,16 @@
             openDeleteModal.value = false
         }
     }
+    onMounted(async()=>{
+        await props.store.getItem(props.father)
+    })
 </script>
 <template>
      <v-card >
             <AddModal  :fields="props.fields" :store="props.store" :fatherId="props.father"/>
 
 <v-data-table
-                    :items="props.items" :headers="props.headers">
+                    :items="props.store.items" :headers="props.headers" :no-data-text="`No se han encontrado ${props.nameSpace} `" :items-per-page-text="`${props.nameSpace} por página `" >
                     <template v-slot:item.actions="{ item }">
                         <v-hover v-slot="{ isHovering, props }" >
                         <v-btn icon @click="editItemModal(item)" :color="isHovering ? 'primary' : undefined" v-bind="props">

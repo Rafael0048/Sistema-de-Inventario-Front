@@ -3,6 +3,8 @@
 import {useProductStore} from '@/stores/productStore'
 import {ref, onMounted} from 'vue'
 import TableBase from '@/components/TableBase.vue'
+import { useLotStore } from '../stores/lotStore'
+const lotStore = useLotStore()
 const productStore = useProductStore()
 const headers = ref([
     { title: 'ID', value: 'productId' },
@@ -11,6 +13,7 @@ const headers = ref([
     { title: 'Ancho', value: 'width' },
     { title: 'Largo', value: 'length' },
     { title: 'Precio', value: 'price' },
+    {title : 'Cantidad' , value: 'quantity'},
     { title: 'Lote', value: 'lot' },
     {title : 'Acciones', value: 'actions'}
 ])
@@ -36,7 +39,7 @@ onMounted(() => {
 })
 </script>
 <template>
-  <TableBase :items="productStore.products" :headers="headers" :fields = "fields" :store="productStore" :subTableHeaders="subTableHeaders" :nameSpace="'Productos'" :subNameSpace="'Lotes'" :subFields="subFields" />
+  <TableBase :items="productStore.items" :headers="headers" :fields = "fields" :store="productStore" :subTableHeaders="subTableHeaders" :nameSpace="'Productos'" :subNameSpace="'Lotes'" :subFields="subFields" :subStore="lotStore" />
 
 </template>
 <style scoped>

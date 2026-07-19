@@ -25,7 +25,7 @@
     try{
         loading.value = true
         if(props.fatherId){
-            await props.store.addSubItem(data.value, props.fatherId)
+            await props.store.addItem(data.value, props.fatherId)
         }else{
             await props.store.addItem(data.value)
         }
@@ -40,19 +40,23 @@
     }
 </script>
 <template>
-    <v-btn color="primary" @click="openModal = true" class="mb-2 mt-2">Agregar</v-btn>
+    <v-btn  color="primary" @click="openModal = true" class="mb-2 mt-2">Agregar</v-btn>
     <v-dialog v-model="openModal" max-width="500">
         <v-card>
             <v-card-title>Agregar {{ props.nameSpace }}</v-card-title>
             <v-card-text>
                 <v-form>
-                   <v-text-field v-for="field in props.fields" :key="field.value" v-model="data[field.value]" :label="field.title" :type="field.type" />
+                    <template v-for="field in props.fields" :key="field.value">
+                        <v-label>{{ field.title }}</v-label>
+                        <v-text-field variant="solo-filled"  v-model="data[field.value]"  :type="field.type" />
+
+                    </template>
                 </v-form>
             </v-card-text>
             <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="primary" @click="openModal = false">Cancelar</v-btn>
-                <v-btn color="primary" @click="saveData()" :loading="loading">Guardar</v-btn>
+                <v-btn color="error"  @click="openModal = false">Cancelar</v-btn>
+                <v-btn color="success" variant="outlined" @click="saveData()" :loading="loading">Guardar</v-btn>
             </v-card-actions>
         </v-card>
     </v-dialog>

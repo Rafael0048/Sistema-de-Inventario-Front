@@ -39,6 +39,9 @@
         },
         subFields: {
             type: Array
+        },
+        subStore : {
+            type : Object
         }
         
     })
@@ -91,21 +94,21 @@
                 <AddModal  :fields="props.fields" :store="props.store" :nameSpace="props.nameSpace" />
             </div>
                 <v-data-table
-                  :items="props.items" :headers="props.headers">
+                  :items="props.items" :headers="props.headers" :no-data-text="`No se han encontrado ${props.nameSpace} `" :items-per-page-text="`${props.nameSpace} por página `">
                     <template v-slot:item.actions="{ item }">
                         <v-hover v-slot="{ isHovering, props }" >
-                        <v-btn icon @click="editItemModal(item)" :color="isHovering ? 'primary' : undefined" v-bind="props">
+                        <v-btn variant="plain" icon @click="editItemModal(item)" :color="isHovering ? 'primary' : undefined" v-bind="props">
                             <v-icon>mdi-pencil</v-icon>
                         </v-btn>
                         </v-hover>
                         <v-hover v-slot="{ isHovering, props }" >
-                        <v-btn icon @click="deleteItemModal(item)" :color="isHovering ? 'error' : undefined" v-bind="props">
+                        <v-btn variant="plain" icon @click="deleteItemModal(item)" :color="isHovering ? 'error' : undefined" v-bind="props">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                         </v-hover>
                     </template>
                     <template v-slot:item.lot="{ item }">
-                        <v-btn @click="()=>{viewSubTable(item.lot); subTableFather = item} ">Ver lotes</v-btn>
+                        <v-btn variant="tonal" @click="()=>{viewSubTable(item.lot); subTableFather = item} ">Ver lotes</v-btn>
                     </template>
                 </v-data-table>
         </v-card>
@@ -141,7 +144,7 @@
             <v-card>
                 <v-card-title>{{ props.subNameSpace }} de {{ subTableFather.name }}</v-card-title>
                 <v-card-text>
-                    <SubTable :items="subTableData" :headers="subTableHeaders" :store="props.store" :fields="props.subFields" :father="subTableFather"  />
+                    <SubTable :items="subTableData" :headers="subTableHeaders" :store="props.subStore" :fields="props.subFields" :father="subTableFather" :nameSpace=" props.subNameSpace"  />
                 </v-card-text>
                 <v-card-actions>
                     <v-spacer></v-spacer>
