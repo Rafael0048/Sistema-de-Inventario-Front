@@ -7,6 +7,7 @@
 // Composables
 import { createRouter, createWebHistory } from 'vue-router'
 import Products from '../pages/ProductsView.vue'
+import Clients from '../pages/ClientesView.vue'
 import Login from '../pages/Login.vue'
 import Home from '../pages/Home.vue'
 const router = createRouter({
@@ -23,6 +24,10 @@ const router = createRouter({
     {
       path : '/productos',
       component : Products
+    },
+    {
+      path : '/clientes',
+      component : Clients
     }
   ],
 })

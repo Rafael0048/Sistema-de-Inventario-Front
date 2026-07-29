@@ -66,11 +66,11 @@
     })
 </script>
 <template>
-     <v-card >
-            <AddModal  :fields="props.fields" :store="props.store" :fatherId="props.father"/>
+     <v-card color="background">
+            <AddModal  :fields="props.fields" :store="props.store" :fatherId="props.father" :nameSpace = "props.nameSpace" />
 
 <v-data-table
-                    :items="props.store.items" :headers="props.headers" :no-data-text="`No se han encontrado ${props.nameSpace} `" :items-per-page-text="`${props.nameSpace} por página `" >
+                   class="custom-table" :items="props.store.items" :headers="props.headers" :no-data-text="`No se han encontrado ${props.nameSpace} `" :items-per-page-text="`${props.nameSpace} por página `" >
                     <template v-slot:item.actions="{ item }">
                         <v-hover v-slot="{ isHovering, props }" >
                         <v-btn icon @click="editItemModal(item)" :color="isHovering ? 'primary' : undefined" v-bind="props">
@@ -88,5 +88,44 @@
                 </v-card>  
 </template>
 <style scoped>
+     .custom-table {
+  border-radius: 12px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: #18181c !important; 
+  overflow: hidden;
+}
 
+:deep(.v-data-table-header) {
+  background-color: #202026 !important;
+}
+
+:deep(.v-data-table-header th) {
+  color: #a1a1aa !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 16px !important;
+}
+
+/* --- FILAS Y CELDAS --- */
+:deep(.v-data-table__td) {
+  color: #e4e4e7 !important;
+  font-size: 0.875rem !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+  padding: 14px 16px !important;
+  transition: background-color 0.2s ease;
+}
+
+:deep(.v-data-table__tr:hover .v-data-table__td) {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* --- FOOTER / PAGINACIÓN --- */
+:deep(.v-data-table-footer) {
+  background-color: #18181c !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #a1a1aa !important;
+}
 </style>

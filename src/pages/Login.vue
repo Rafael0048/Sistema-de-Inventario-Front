@@ -11,6 +11,7 @@ async function loginUser() {
     try{
         
         const response = await userStore.loginUser(user.value)
+
     }catch(error){
         errorAuth.value = error.error
     }
@@ -18,7 +19,7 @@ async function loginUser() {
 </script>
 <template>
   <div class="d-flex justify-center align-center h-100">
-    
+
     <v-card width="400" class="pa-6">
       
       <v-card-item class="text-center">

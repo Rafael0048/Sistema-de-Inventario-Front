@@ -25,7 +25,9 @@ const fields = ref([
 ])
 const subTableHeaders = ref([
     { title: 'ID', value: 'lotId' },
-    { title: 'Cantidad', value: 'quantity' },
+    { title: 'Cantidad inicial', value: 'initialQuantity' },
+    { title: 'Cantidad actual', value: 'actualQuantity' },
+    { title: 'Estado', value: 'status' },
     { title: 'Fecha de compra', value: 'date' },
     {title : 'Precio', value: 'price'}
 ])

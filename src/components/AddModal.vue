@@ -40,7 +40,7 @@
     }
 </script>
 <template>
-    <v-btn  color="primary" @click="openModal = true" class="mb-2 mt-2">Agregar</v-btn>
+    <v-btn variant="outlined" color="primary" @click="openModal = true" class="mb-2 mt-2">Agregar</v-btn>
     <v-dialog v-model="openModal" max-width="500">
         <v-card>
             <v-card-title>Agregar {{ props.nameSpace }}</v-card-title>

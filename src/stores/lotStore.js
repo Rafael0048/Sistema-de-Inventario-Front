@@ -2,31 +2,59 @@ import {ref} from 'vue'
 import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useProductStore } from './productStore'
+import apiCall from '../utiliy/ApiCall'
+import { useAlertStore } from './alertStore'
 export const useLotStore = defineStore('lot',()=>{
     const url = '/productos/stock'
+    const alertStore = useAlertStore()
     const producStore = useProductStore()
     const items = ref([])
     async function getItem(father){
-        console.log(father)
-        const response = await axios.get(`${import.meta.env.VITE_URL_DIRECTION}${url}/${father.productId}`)
-       
-        items.value = response.data
+        try {
+            const response = await apiCall('get',`${url}/${father.productId}`,)
+            items.value = response.data
+        } catch (error) {
+            alertStore.showAlert('error',error.message, 'Fallo al obtener los lotes')
+
+        }
     }
     async function addItem(item , fatherId){
-        item.productId = fatherId.productId
-        item.quantity = Number(item.quantity)
-        item.price = Number(item.price)
-        const response = await axios.post(`${import.meta.env.VITE_URL_DIRECTION}${url}`, item)
-        await getItem(fatherId)
-        await producStore.getItem()
+        try {
+            item.productId = fatherId.productId
+            item.initialQuantity = Number(item.quantity)
+            item.actualQuantity = Number(item.quantity)
+            item.price = Number(item.price)
+            const response = await apiCall('post',url,item)
+            await getItem(fatherId)
+            await producStore.getItem()
+            alertStore.showAlert('success',`Se ha agregado el lote al producto ${fatherId.name}`, 'Lote agregado correctamente')
+
+        } catch (error) {
+            alertStore.showAlert('error',error.message, 'Fallo al agregar el lote')
+
+        }
     }
     async function editItem(item){
-        const response = await axios.put(`${import.meta.env.VITE_URL_DIRECTION}${url}/${item.lotId}`, item)
-        await getItem()
+        try {
+            const response = await apiCall('put',`${url}/${item.lotId}`,item)
+            await getItem()
+            alertStore.showAlert('success',`Se ha editado el lote`, 'Lote editado correctamente')
+
+        } catch (error) {
+            alertStore.showAlert('error',error.message, 'Fallo al editar el lote')
+
+        }
     }
     async function deleteItem(item){
-        const response = await axios.delete(`${import.meta.env.VITE_URL_DIRECTION}${url}/${item.lotId}`)
-        await getItem()
+        try {
+            const response = await apiCall('delete',`${url}/${item.lotId}`)
+            await getItem()
+            alertStore.showAlert('success',`Se ha eliminado el lote`, 'Lote eliminado correctamente')
+
+        } catch (error) {
+            alertStore.showAlert('error',error.message, 'Fallo al eliminar el lote')
+
+        }
     }
   
     return{ items, getItem, addItem, editItem, deleteItem }

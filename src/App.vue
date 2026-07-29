@@ -28,17 +28,19 @@
 
     <v-main>
       <router-view class="h-dvh" />
+      <AlertModal/>
     </v-main>
   </v-app>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-
+import AlertModal from './components/AlertModal.vue';
 const drawer = ref(false) 
 const items = ref([
   { title: 'Home', icon: 'mdi-home' , to:'/' },
   { title: 'Productos', icon: 'mdi-information', to:'/productos' },
   { title: 'Login', icon: 'mdi-phone', to:'/login' },
+    { title: 'Clientes', icon: 'mdi-ticket', to:'/clientes' },
 ])
 </script>

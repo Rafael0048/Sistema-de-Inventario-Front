@@ -2,7 +2,9 @@ import {defineStore} from 'pinia'
 import {ref} from 'vue'
 import axios from 'axios'
 import apiCall from '../utiliy/ApiCall'
+import { useAlertStore } from './alertStore'
 export const useUserStore = defineStore('user', ()=>{
+    const alertStore = useAlertStore()
     const url = '/usuarios'
     const items = ref([])
     const activeUser = ref({})
@@ -11,6 +13,7 @@ export const useUserStore = defineStore('user', ()=>{
         try{
             const response = await apiCall('post', `${url}/login`, user)
             localStorage.setItem('userToken', response.data.token)
+            alertStore.showAlert('success','El usuario se ha registrado con exito', 'Sesion iniciada')
             return response.data.message
         }catch(error){
             throw error
