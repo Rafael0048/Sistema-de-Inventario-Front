@@ -3,9 +3,9 @@ import {ref} from 'vue'
 import axios from 'axios'
 import apiCall from '../utiliy/ApiCall'
 import { useAlertStore } from './alertStore'
-export const useProductStore = defineStore('product', ()=>{
+export const useSaleStore = defineStore('sale', ()=>{
     const alertStore = useAlertStore()
-    const url = '/productos'
+    const url = '/ventas'
     const items = ref([])
     const itemCount = ref(0)
     async function getItem(page,itemsPerPage,search,sortBy){
@@ -21,28 +21,10 @@ export const useProductStore = defineStore('product', ()=>{
 
             const itemsRows =response.data.rows
             itemCount.value = response.data.count
-            itemsRows.forEach(product => {
-                if(product.lot.length>0){
-                    let lastProductPrice = 0 
-                    let productQuantity = 0
-                    product.lot.forEach(lot =>{
-                        if(lot.price>lastProductPrice){
-                            lastProductPrice = lot.price
-                        }
-                        productQuantity = lot.actualQuantity + productQuantity
-                    })
-                    product.price = lastProductPrice
-                    product.quantity = productQuantity
-                    
-                }else{
-                    product.price = 'Sin precio'
-                    product.quantity = 0
-                }
-            })
             items.value = itemsRows
         }catch(error){
             console.log(error)
-            alertStore.showAlert('error',error.message, 'Fallo al cargar los productos')
+            alertStore.showAlert('error',error.message, 'Fallo al cargar las ventas')
 
         }
     }

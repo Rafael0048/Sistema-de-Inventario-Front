@@ -41,6 +41,10 @@ const items = ref([
   { title: 'Home', icon: 'mdi-home' , to:'/' },
   { title: 'Productos', icon: 'mdi-information', to:'/productos' },
   { title: 'Login', icon: 'mdi-phone', to:'/login' },
-    { title: 'Clientes', icon: 'mdi-ticket', to:'/clientes' },
+  { title: 'Clientes', icon: 'mdi-ticket', to:'/clientes' },
+  { title: 'Vender', icon: 'mdi-ticket', to:'/registrarVenta' },
+    { title: 'Ventas', icon: 'mdi-ticket', to:'/ventas' },
+
+
 ])
 </script>
