@@ -111,6 +111,10 @@ const openDetail = (sale) => {
                             <div class="text-caption text-grey">Cliente</div>
                             <div class="font-weight-medium">{{ selectedSale.client?.name || 'N/A' }}</div>
                         </v-col>
+                            <v-col cols="6">
+                            <div class="text-caption text-grey">Estado</div>
+                            <div class="font-weight-medium">{{ selectedSale.status || 'N/A' }}</div>
+                        </v-col>
                         
                     </v-row>
 
@@ -153,12 +157,15 @@ const openDetail = (sale) => {
                             class="mb-2 border rounded-lg pa-3"
                         >
                             
-                            <v-list-item-title class="font-weight-bold">
+                            <v-list-item-title class="font-weight-bold pt-2">
                                Método de Pago: <span>{{ pay.method }} </span> | Estado del Pago: <span>{{ pay.status }} </span> 
                             </v-list-item-title>
                             
-                            <v-list-item-subtitle class="text-caption">
+                            <v-list-item-subtitle class="text-caption pt-2">
                                 Cantidad Pagada: <strong>${{ pay.dolarValue }}</strong> | Cantidad en Bolivares: <strong>Bs.{{ pay.bsValue }}</strong>
+                            </v-list-item-subtitle>
+                              <v-list-item-subtitle class="text-caption pt-2">
+                                Fecha del pago: <strong>{{ pay.date }}</strong> 
                             </v-list-item-subtitle>
 
                             
