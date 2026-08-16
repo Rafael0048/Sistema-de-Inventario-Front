@@ -48,7 +48,13 @@
                 <v-form>
                     <template v-for="field in props.fields" :key="field.value">
                         <v-label>{{ field.title }}</v-label>
-                        <v-text-field variant="solo-filled"  v-model="data[field.value]"  :type="field.type" />
+                        <template v-if="field.type === 'select'">
+                            <v-select  variant="solo-filled" :items="field.options" v-model="data[field.value]" />
+                        </template>
+                        <template v-else>
+                            <v-text-field variant="solo-filled"  v-model="data[field.value]"  :type="field.type"  autocomplete="off"/>
+                        </template>
+                            
 
                     </template>
                 </v-form>

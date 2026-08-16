@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { useProductStore } from '../stores/productStore';
 import { useClientStore } from '../stores/clientStore';
 import { useSaleStore } from '../stores/saleStore';
+import AddModal from '@/components/AddModal.vue';
 const productStore = useProductStore();
 const clientStore = useClientStore();
 const saleStore = useSaleStore()
@@ -14,15 +15,17 @@ const selectedProductInput = ref(null); // Producto seleccionado temporalmente e
 const payment = ref({
     dolarValue : 0,
     bsValue : 0,
-    method : '',
-    status : ''
+    // method : '',
+    // status : ''
 })
 // Lista de ítems en el carrito/resumen
 const cartItems = ref([]);
-
+const formatBsOnBlur = () => {
+  isUserTypingBs.value = false;
+  const bs = parseFloat(payment.value.bsValue) || 0;
+  payment.value.bsValue = bs.toFixed(2);
+};
 // Opciones de Stores
-const products = ref([]);
-const clients = ref([]);
 const payMethods = ['Efectivo', 'Pago móvil', 'Transferencia', 'Crédito'];
 const dolarPrice = ref(0); 
 const statusOptions = ['Pendiente', 'Confirmado' , 'Parcial']
@@ -30,7 +33,6 @@ onMounted(async () => {
     fetch('https://ve.dolarapi.com/v1/dolares/oficial')
         .then(response => response.json())
         .then(data => {
-            console.log(data)
             dolarPrice.value = data.promedio; // Guardamos el precio del dólar
         })
         .catch(error => {
@@ -38,8 +40,6 @@ onMounted(async () => {
         });
     await productStore.getItem();
     await clientStore.getItem();
-    products.value = productStore.items;
-    clients.value = clientStore.items;
 });
 
 
@@ -80,9 +80,33 @@ const totalSale = computed(() => {
 });
 watch(totalSale, (newTotal)=>{
     payment.value.dolarValue = newTotal
-    payment.value.bsValue = (newTotal * dolarPrice.value).toFixed(2)
 })
 
+const isUserTypingBs = ref(false);
+
+// 1. Si cambia el total de la venta -> actualizar ambos campos
+watch(totalSale, (newTotal) => {
+  payment.value.dolarValue = newTotal;
+  payment.value.bsValue = (newTotal * dolarPrice.value).toFixed(2);
+}, { immediate: true });
+
+// 2. Si cambia el Dólar (y no estamos escribiendo manualmente en Bs) -> actualizar Bolívares
+watch(() => payment.value.dolarValue, (newDolar) => {
+  if (isUserTypingBs.value) return; // No interrumpe si se está escribiendo en Bs
+
+  const usd = parseFloat(newDolar) || 0;
+  payment.value.bsValue = (usd * dolarPrice.value).toFixed(2);
+});
+
+// 3. Al cambiar los Bolívares -> recalcular Dólares libremente sin formatear la cadena de Bs
+watch(() => payment.value.bsValue, (newBs) => {
+  if (!isUserTypingBs.value) return;
+
+  const bs = parseFloat(newBs) || 0;
+  payment.value.dolarValue = dolarPrice.value > 0 
+    ? parseFloat((bs / dolarPrice.value).toFixed(2)) 
+    : 0;
+});
 // Función para enviar la venta a la API
 const handleSubmit = async () => {
     loading.value = true
@@ -108,9 +132,16 @@ const handleSubmit = async () => {
     loading.value = false
     selectedClient.value = null
     selectedProductInput.value = null
-    cartItems.value.length = 0;    
-    // Aquí invocas tu endpoint/store: await salesStore.createSale(salePayload);
+    cartItems.value.length = 0;  
+    
+// Aquí invocas tu endpoint/store: await salesStore.createSale(salePayload);
 };
+const clientsFields = [
+    { title: 'Nombre', value: 'name', type: 'text' },
+    { title: 'Apellido', value: 'lastName', type: 'text' },
+    { title: 'Teléfono', value: 'phone', type: 'text' },
+    { title: 'Identificación', value: 'identification', type: 'text' }
+] 
 </script>
 
 <template>
@@ -124,35 +155,38 @@ const handleSubmit = async () => {
                     <!-- Información del Cliente -->
                     <v-row>
                         <v-col cols="12" sm="6">
-                            <v-combobox 
+                            <v-autocomplete 
                                 v-model="selectedClient"
                                 label="Cliente" 
-                                :items="clients"
+                                :items="clientStore.items"
                                 item-title="name"
                                 return-object
                                 variant="solo-filled"
-                                density="comfortable"
                                 clearable
-                            />
+                                autocomplete = "off"
+                                />
                         </v-col>
-                        
+                        <v-col cols="12" md="6">
+                            <AddModal :fields="clientsFields" :store="clientStore" :nameSpace="'Cliente'" />
+                        </v-col>
                     </v-row>
 
                     <v-divider class="my-4"></v-divider>
 
                     <!-- Selector de Productos -->
                     <h3 class="text-subtitle-1 font-weight-bold mb-2">Agregar Productos</h3>
-                    <v-combobox 
+                    <v-autocomplete
                         v-model="selectedProductInput"
                         @update:model-value="addProductToCart"
                         label="Buscar y seleccionar producto..." 
-                        :items="products"
+                        :items="productStore.items"
                         item-title="name"
                         return-object
                         variant="solo-filled"
-                        density="comfortable"
                         prepend-inner-icon="mdi-magnify"
                         clearable
+                        autocomplete = "off"
+
                     />
 
                     <!-- Lista Editable de Productos Agregados -->
@@ -178,7 +212,6 @@ const handleSubmit = async () => {
                                     min="1"
                                     :max="item.totalQuantity"
                                     variant="solo-filled"
-                                    density="compact"
                                     hide-details
                                 />
                             </div>
@@ -191,7 +224,6 @@ const handleSubmit = async () => {
                                     type="number"
                                     step="0.01"
                                     variant="solo-filled"
-                                    density="compact"
                                     hide-details
                                 />
                             </div>
@@ -201,7 +233,6 @@ const handleSubmit = async () => {
                                 icon="mdi-delete-outline" 
                                 color="error" 
                                 variant="text" 
-                                density="comfortable"
                                 @click="removeItem(index)" 
                             />
                         </div>
@@ -215,43 +246,48 @@ const handleSubmit = async () => {
                         </v-card-title>
                         <v-row>
                             <v-col cols="12" sm="6">
+                            <v-label text="Método de Pago"/>
+                                
                             <v-select
+                                placeholder="Pago movil"
                                 v-model="payment.method"
-                                label="Método de Pago"
                                 :items="payMethods"
                                 variant="solo-filled"
-                                density="comfortable"
                             />
                         </v-col>
                         <v-col cols="12" sm="6">
+                            <v-label text="Monto Pagado"/>
                             <v-text-field
                                 v-model.number="payment.dolarValue"
-                                label="Monto Pagado"
+                                prefix="$"
                                 type="number"
                                 step="0.01"
                                 variant="solo-filled"
-                                density="comfortable"
                             />
                             </v-col>
                         </v-row>
                         <v-row>
                             <v-col cols="12" sm="6">
+                            <v-label text="Estado del Pago"/>
+
                             <v-select
+                                placeholder="Pagado"
                                 v-model="payment.status"
-                                label="Estado del Pago"
                                 :items="statusOptions"
                                 variant="solo-filled"
-                                density="comfortable"
                             />
                         </v-col>
                         <v-col cols="12" sm="6">
+                        <v-label text="Monto Pagada en Bolívares"/>
+
                             <v-text-field
                                 v-model="payment.bsValue"
-                                label="Monto Pagado en Bolivares"
+                                prefix="Bs."
                                 type="number"
                                 step="0.01"
                                 variant="solo-filled"
-                                density="comfortable"
+                                @focus="isUserTypingBs = true"
+                                @blur="formatBsOnBlur"
                             />
                             </v-col>
                         </v-row>
@@ -296,7 +332,7 @@ const handleSubmit = async () => {
                         rounded="pill" 
                         elevation="2"
                         :loading="loading"
-                        :disabled="cartItems.length === 0 || !selectedClient"
+                        :disabled="cartItems.length === 0 || !selectedClient||!payment.dolarValue|!payment.method||payment.status"
                         @click="handleSubmit"
                     >
                         Procesar Venta

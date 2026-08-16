@@ -61,6 +61,27 @@ export const useSaleStore = defineStore('sale', ()=>{
 
         }
     }
-  
-    return{ items, itemCount, getItem, addItem, editItem, deleteItem }
+    async function addPayment(payment, saleId){
+        try {
+            payment.saleId = saleId
+            const response = await apiCall('post',`${url}/payment`,payment)
+            await getItem()
+            alertStore.showAlert('success',`Se ha agregado el pago de ${payment.bsValue} Bs`, 'Pago agregado correctamente')
+            
+
+            } catch (error){
+            alertStore.showAlert('error',error.message, 'Fallo al agregar el pago')
+        }
+            }
+    async function editPayment(paymentId, payment){
+        try{
+            console.log(payment)
+            const response = await apiCall('put',`${url}/payment/${paymentId}`,payment)
+            await getItem()
+            alertStore.showAlert('success',`Se ha editado el pago de ${payment.bsValue} Bs`, 'Pago editado correctamente')
+        } catch (error) {
+            alertStore.showAlert('error',error.message, 'Fallo al editar el pago')
+        }
+    }
+    return{ items, itemCount, getItem, addItem, editItem, deleteItem, addPayment, editPayment }
 })

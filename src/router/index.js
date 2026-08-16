@@ -12,6 +12,7 @@ import Login from '../pages/Login.vue'
 import Home from '../pages/Home.vue'
 import SalesForm from '../pages/SalesForm.vue'
 import SalesView from '../pages/SalesView.vue'
+import UsersView from '../pages/UsersView.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -38,6 +39,10 @@ const router = createRouter({
     {
       path :'/ventas',
       component : SalesView
+    },
+    {
+      path : '/usuarios',
+      component : UsersView
     }
   ],
 })

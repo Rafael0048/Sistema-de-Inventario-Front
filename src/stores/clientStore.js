@@ -18,7 +18,7 @@ export const useClientStore = defineStore('client', ()=>{
             }
             const response = await apiCall('get',url, params)
             items.value = response.data.rows
-            
+            itemCount.value = response.data.count
         } catch (error) {
             alertStore.showAlert('error',error.message, 'Fallo al obtener los cliente')
         }

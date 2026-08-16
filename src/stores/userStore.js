@@ -7,54 +7,47 @@ export const useUserStore = defineStore('user', ()=>{
     const alertStore = useAlertStore()
     const url = '/usuarios'
     const items = ref([])
+    const itemCount = ref(0)
     const activeUser = ref({})
     const error = ref({})
     async function loginUser(user) {
         try{
             const response = await apiCall('post', `${url}/login`, user)
             localStorage.setItem('userToken', response.data.token)
-            alertStore.showAlert('success','El usuario se ha registrado con exito', 'Sesion iniciada')
+            alertStore.showAlert('success','El usuario  ha iniciado sesion con exito', 'Sesion iniciada')
             return response.data.message
         }catch(error){
             throw error
         }
        
     }
-    async function registerUser(user) {
-        
+    async function addItem(user) {
+        try{
+            console.log(user)
+            const response = await apiCall('post', `${url}/register`, user)
+            alertStore.showAlert('success','El usuario se ha registrado con exito', 'Registro completado')
+            return response.data.message
+        }catch(error){
+            throw error
+        }
     }
-    // async function getItem(){
-    //     const response = await apiCall('get','/productos')
-    //    // const response = await axios.get(`${import.meta.env.VITE_URL_DIRECTION}${url}`)
-    //     response.data.forEach(product => {
-    //         if(product.lot.length>0){
-    //             let productPrice = 0 
-    //             let productQuantity = 0
-    //             product.lot.forEach(lot =>{
-    //                 productPrice = (lot.price+productPrice)
-    //                 productQuantity = lot.quantity + productQuantity
-    //             })
-    //             productPrice = productPrice/product.lot.length
-    //             product.price = productPrice.toFixed(2)
-    //             product.quantity = productQuantity
-    //         }else{
-    //             product.price = 'Sin precio'
-    //         }
-    //     })
-    //     items.value = response.data
-    // }
-    // async function addItem(item){
-    //     const response = await axios.post(`${import.meta.env.VITE_URL_DIRECTION}${url}`, item)
-    //     await getItem()
-    // }
-    // async function editItem(item){
-    //     const response = await axios.put(`${import.meta.env.VITE_URL_DIRECTION}${url}/${item.productId}`, item)
-    //     await getItem()
-    // }
-    // async function deleteItem(item){
-    //     const response = await axios.delete(`${import.meta.env.VITE_URL_DIRECTION}${url}/${item.productId}`)
-    //     await getItem()
-    // }
+     async function getItem(page,itemsPerPage,search,sortBy){
+        try {
+           const params ={
+                page : page,
+                itemsPerPage: itemsPerPage,
+                search : search,
+                sortBy : sortBy
+            }
+            const response = await apiCall('get',url, params)
+            items.value = response.data.rows
+            itemCount.value = response.data.count
+        } catch (error) {
+            alertStore.showAlert('error',error.message, 'Fallo al obtener los usuarios')
+        }
+    }
     
-    return{  loginUser }
+   
+    
+    return{  loginUser,addItem , getItem, items, itemCount}
 })
