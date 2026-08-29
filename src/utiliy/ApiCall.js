@@ -1,6 +1,9 @@
 import axios from 'axios';
 import router from '@/router' 
+import { useAuthStore } from '../stores/authStore';
+
 const apiCall = async ( method = 'get', url, data = null, headers = {} ) => {
+  const authStore = useAuthStore()
     const token = localStorage.getItem('userToken')
    const auth = `Bearer ${token}`
    const httpMethod = method.toLowerCase();
@@ -24,6 +27,7 @@ const apiCall = async ( method = 'get', url, data = null, headers = {} ) => {
     if (error.response) {
       const status = error.response.status || error.response.data?.status
       if(status === 401 || status=== 403){
+        authStore.logout()
         router.push('/login')
       }
     throw error.response.data; 

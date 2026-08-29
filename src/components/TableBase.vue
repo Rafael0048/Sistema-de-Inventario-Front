@@ -3,6 +3,10 @@
    import {useProductStore} from '@/stores/productStore.js'
    import AddModal from '@/components/AddModal.vue'
    import SubTable from '@/components/SubTable.vue'
+   import { useAuthStore } from '../stores/authStore'
+   import router from '@/router' 
+
+   const authStore = useAuthStore()
    const openModal = ref(false)
    const openDeleteModal = ref(false)
    const data = ref({})
@@ -103,6 +107,12 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
     }
   }, 400) 
 }
+async function viewMovements(item){
+       router.push({
+  path: '/movimientos',
+  query: { product: item.name }
+});
+    }
 
 </script>
 
@@ -116,7 +126,7 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
             
             <div class="pa-4 d-flex align-center justify-space-between">
                 <AddModal :fields="props.fields" :store="props.store" :nameSpace="props.nameSpace" />
-                <v-text-field append-inner-icon="mdi-magnify" max-width="350px" label="Buscar" v-model="search" variant="solo-filled" hide-details density="compact"/>
+                <v-text-field append-inner-icon="mdi-magnify" max-width="350px" label="Buscar" v-model="search" variant="solo-filled" hide-details density="compact" autocomplete="off"/>
             </div>
                 
             
@@ -134,7 +144,7 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
                 @update:options="loadItems"
             >
             
-                <template v-slot:item.actions="{ item }">
+                <template v-slot:item.actions="{ item }" v-if="authStore.hasRole('Administrador')">
                     <v-hover v-slot="{ isHovering, props }">
                         <v-btn variant="plain" icon @click="editItemModal(item)" :color="isHovering ? 'primary' : undefined" v-bind="props">
                             <v-icon>mdi-pencil</v-icon>
@@ -145,6 +155,14 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                     </v-hover>
+                    <template v-if="props.nameSpace==='Productos'">
+                         <v-hover v-slot="{ isHovering, props }" >
+                        <v-btn icon @click="viewMovements(item)" :color="isHovering ? 'primary' : undefined" v-bind="props">
+                            <v-icon>mdi-eye</v-icon>
+                        </v-btn>
+                        </v-hover>
+
+                    </template>
                 </template>
 
                 <template v-slot:item.lot="{ item }">

@@ -4,6 +4,8 @@ import {useProductStore} from '@/stores/productStore'
 import {ref, onMounted} from 'vue'
 import TableBase from '@/components/TableBase.vue'
 import { useLotStore } from '../stores/lotStore'
+import { useAuthStore } from '../stores/authStore'
+const authStore = useAuthStore()
 const lotStore = useLotStore()
 const productStore = useProductStore()
 const headers = ref([
@@ -15,7 +17,7 @@ const headers = ref([
     { title: 'Precio', value: 'price' },
     {title : 'Cantidad' , value: 'quantity'},
     { title: 'Lote', value: 'lot' },
-    {title : 'Acciones', value: 'actions'}
+  authStore.hasRole('Administrador')?{title : 'Acciones', value: 'actions'}:{}
 ])
 const fields = ref([
     { title: 'Nombre', value: 'name', type: 'text' },
@@ -29,7 +31,8 @@ const subTableHeaders = ref([
     { title: 'Cantidad actual', value: 'actualQuantity' },
     { title: 'Estado', value: 'status' },
     { title: 'Fecha de compra', value: 'date' },
-    {title : 'Precio', value: 'price'}
+    {title : 'Precio', value: 'price'},
+
 ])
 const subFields = ref([
     { title: 'Cantidad', value: 'quantity', type: 'number' },

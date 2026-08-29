@@ -39,17 +39,7 @@
         openDeleteModal.value = true
     }
 
-    async function editItem(item){
-        try{
-            await props.store.editItem(item)
-            loading.value = false
-            openModal.value = false
-        }catch(error){
-            console.error('Error editando un item:', error)
-            loading.value = false
-            openModal.value = false
-        }
-    }
+    
     async function deleteItem(item){
         try{
             await props.store.deleteItem(item)
@@ -73,8 +63,8 @@
                    class="custom-table" :items="props.store.items" :headers="props.headers" :no-data-text="`No se han encontrado ${props.nameSpace} `" :items-per-page-text="`${props.nameSpace} por página `" >
                     <template v-slot:item.actions="{ item }">
                         <v-hover v-slot="{ isHovering, props }" >
-                        <v-btn icon @click="editItemModal(item)" :color="isHovering ? 'primary' : undefined" v-bind="props">
-                            <v-icon>mdi-pencil</v-icon>
+                        <v-btn icon @click="viewMovements(item)" :color="isHovering ? 'primary' : undefined" v-bind="props">
+                            <v-icon>mdi-eye</v-icon>
                         </v-btn>
                         </v-hover>
                         <v-hover v-slot="{ isHovering, props }" >

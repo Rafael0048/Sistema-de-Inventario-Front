@@ -3,13 +3,15 @@
 import {useUserStore} from '../stores/userStore'
 import {ref, onMounted} from 'vue'
 import TableBase from '@/components/TableBase.vue'
+import { useAuthStore } from '../stores/authStore'
 const userStore = useUserStore()
+const authStore = useAuthStore()
 const headers = ref([
     { title: 'ID', value: 'userId' },
     { title: 'Nombre', value: 'name' },
     { title: 'Usuario', value: 'userName' },
     {title : 'Rol', value: 'role'},
-    {title : 'Acciones', value: 'actions'}
+    authStore.hasRole('Administrador')?{title : 'Acciones', value: 'actions'}:{}
 ])
 const fields = ref([
     { title: 'Usuario', value: 'userName', type: 'text' },

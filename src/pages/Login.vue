@@ -1,7 +1,8 @@
 <script setup>
 import {ref} from 'vue'
-import { useUserStore } from '../stores/userStore';
-const userStore = useUserStore()
+import { useAuthStore } from '../stores/authStore'
+const loading = ref(false)
+const authStore = useAuthStore()
 const user = ref({
     userName : '',
     password : ''
@@ -9,11 +10,13 @@ const user = ref({
 const errorAuth = ref('')
 async function loginUser() {
     try{
-        
-        const response = await userStore.loginUser(user.value)
-
+      loading.value = true
+      const response = await authStore.loginUser(user.value)
+      loading.value = false
     }catch(error){
         errorAuth.value = error.error
+        loading.value = false
+
     }
 }
 </script>
@@ -53,6 +56,7 @@ async function loginUser() {
             block 
             size="large"
             @click="loginUser()"
+            :loading="loading"
           >
             Iniciar Sesión
           </v-btn>

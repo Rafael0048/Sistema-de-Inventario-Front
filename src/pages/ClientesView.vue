@@ -3,6 +3,8 @@
 import { useClientStore } from '../stores/clientStore'
 import {ref, onMounted} from 'vue'
 import TableBase from '@/components/TableBase.vue'
+import { useAuthStore } from '../stores/authStore'
+const authStore = useAuthStore()
 const clientStore = useClientStore()
 const headers = ref([
     { title: 'ID', value: 'clientId' },
@@ -10,7 +12,7 @@ const headers = ref([
     { title: 'Apellido', value: 'lastName' },
     { title: 'Teléfono', value: 'phone' },
     { title: 'Identificación', value: 'identification' },
-    {title : 'Acciones', value: 'actions'}
+  authStore.hasRole('Administrador')?{title : 'Acciones', value: 'actions'}:{}
 ])
 const fields = ref([
     { title: 'Nombre', value: 'name', type: 'text' },

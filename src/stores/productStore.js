@@ -8,13 +8,14 @@ export const useProductStore = defineStore('product', ()=>{
     const url = '/productos'
     const items = ref([])
     const itemCount = ref(0)
-    async function getItem(page,itemsPerPage,search,sortBy){
+    async function getItem(page,itemsPerPage,search,sortBy,noZeroStock){
         try{
             const params ={
                 page : page,
                 itemsPerPage: itemsPerPage,
                 search : search,
-                sortBy : sortBy
+                sortBy : sortBy,
+                noZeroStock : noZeroStock
             }
             const response = await apiCall('get',url, params)
             

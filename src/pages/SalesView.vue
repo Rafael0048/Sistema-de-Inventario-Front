@@ -1,7 +1,8 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import { useSaleStore } from "../stores/saleStore"; 
-
+import { useAuthStore } from '../stores/authStore'
+const authStore = useAuthStore()
 const saleStore = useSaleStore();
 const sales = ref([]);
 const loading = ref(false);
@@ -259,7 +260,7 @@ const openDetail = (sale) => {
   <div class="d-flex align-center gap-2 flex-grow-1 mr-2">
     <span>Método de Pago: <strong>{{ pay.method }}</strong> | Estado:</span>
 
-    <span v-if="editingPaymentId !== pay.paymentId" class="font-weight-bold ml-1">
+    <span v-if="editingPaymentId !== pay.paymentId " class="font-weight-bold ml-1">
       {{ pay.status }}
     </span>
 
@@ -274,9 +275,9 @@ const openDetail = (sale) => {
     />
   </div>
 
-  <div>
+  <div v-if="authStore.hasRole('Administrador')">
     <v-btn
-      v-if="editingPaymentId !== pay.paymentId"
+      v-if="editingPaymentId !== pay.paymentId "
       icon="mdi-pencil"
       variant="text"
       color="primary"

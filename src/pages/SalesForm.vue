@@ -4,56 +4,52 @@ import { useProductStore } from '../stores/productStore';
 import { useClientStore } from '../stores/clientStore';
 import { useSaleStore } from '../stores/saleStore';
 import AddModal from '@/components/AddModal.vue';
+import { useAuthStore } from '../stores/authStore'
+const authStore = useAuthStore()
 const productStore = useProductStore();
 const clientStore = useClientStore();
 const saleStore = useSaleStore()
 const loading = ref(false)
-// Formularios
 const selectedClient = ref(null);
 const payMethod = ref('Efectivo');
-const selectedProductInput = ref(null); // Producto seleccionado temporalmente en el combo
+const selectedProductInput = ref(null); 
 const payment = ref({
     dolarValue : 0,
     bsValue : 0,
     // method : '',
     // status : ''
 })
-// Lista de ítems en el carrito/resumen
 const cartItems = ref([]);
 const formatBsOnBlur = () => {
   isUserTypingBs.value = false;
   const bs = parseFloat(payment.value.bsValue) || 0;
   payment.value.bsValue = bs.toFixed(2);
 };
-// Opciones de Stores
-const payMethods = ['Efectivo', 'Pago móvil', 'Transferencia', 'Crédito'];
+const payMethods = ['Efectivo', 'Pago móvil', 'Transferencia'];
 const dolarPrice = ref(0); 
 const statusOptions = ['Pendiente', 'Confirmado' , 'Parcial']
 onMounted(async () => {
     fetch('https://ve.dolarapi.com/v1/dolares/oficial')
         .then(response => response.json())
         .then(data => {
-            dolarPrice.value = data.promedio; // Guardamos el precio del dólar
+            dolarPrice.value = data.promedio; 
         })
         .catch(error => {
             console.error('Error al obtener el precio del dólar:', error);
         });
-    await productStore.getItem();
+    await productStore.getItem(null,null,null,null,true);
     await clientStore.getItem();
 });
 
 
-// Función para agregar el producto al carrito con sus campos editables
 const addProductToCart = (product) => {
     if (!product) return;
 
-    // Verificar si ya está en el carrito para no duplicar filas
     const existingItem = cartItems.value.find(item => item.productId === product.productId);
     
     if (existingItem) {
         existingItem.quantity += 1;
     } else {
-        // Obtenemos el precio sugerido (si el producto no trae precio se puede poner 0 o el del lote más reciente)
         const initialPrice = product.price || 0; 
         
         cartItems.value.push({
@@ -65,16 +61,13 @@ const addProductToCart = (product) => {
         });
     }
 
-    // Limpiar el combobox de selección
     selectedProductInput.value = null;
 };
 
-// Eliminar ítem del carrito
 const removeItem = (index) => {
     cartItems.value.splice(index, 1);
 };
 
-// Cálculo en tiempo real del Total de la Venta
 const totalSale = computed(() => {
     return cartItems.value.reduce((sum, item) => sum + (item.quantity * item.price), 0);
 });
@@ -84,21 +77,18 @@ watch(totalSale, (newTotal)=>{
 
 const isUserTypingBs = ref(false);
 
-// 1. Si cambia el total de la venta -> actualizar ambos campos
 watch(totalSale, (newTotal) => {
   payment.value.dolarValue = newTotal;
   payment.value.bsValue = (newTotal * dolarPrice.value).toFixed(2);
 }, { immediate: true });
 
-// 2. Si cambia el Dólar (y no estamos escribiendo manualmente en Bs) -> actualizar Bolívares
 watch(() => payment.value.dolarValue, (newDolar) => {
-  if (isUserTypingBs.value) return; // No interrumpe si se está escribiendo en Bs
+  if (isUserTypingBs.value) return; 
 
   const usd = parseFloat(newDolar) || 0;
   payment.value.bsValue = (usd * dolarPrice.value).toFixed(2);
 });
 
-// 3. Al cambiar los Bolívares -> recalcular Dólares libremente sin formatear la cadena de Bs
 watch(() => payment.value.bsValue, (newBs) => {
   if (!isUserTypingBs.value) return;
 
@@ -107,14 +97,13 @@ watch(() => payment.value.bsValue, (newBs) => {
     ? parseFloat((bs / dolarPrice.value).toFixed(2)) 
     : 0;
 });
-// Función para enviar la venta a la API
 const handleSubmit = async () => {
     loading.value = true
     if (!selectedClient.value) return alert('Selecciona un cliente');
     if (cartItems.value.length === 0) return alert('Agrega al menos un producto');
 
     const salePayload = {
-        date: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+        date: new Date().toISOString().split('T')[0], 
         totalSale: totalSale.value,
         clientId: selectedClient.value.clientId,
         method : payment.value.method,
@@ -126,7 +115,8 @@ const handleSubmit = async () => {
             lotId: item.lotId,
             quantity: Number(item.quantity),
             price: item.price
-        }))
+        })),
+        userId : authStore.activeUser.id
     };
     await saleStore.addItem(salePayload)
     loading.value = false
@@ -134,7 +124,6 @@ const handleSubmit = async () => {
     selectedProductInput.value = null
     cartItems.value.length = 0;  
     
-// Aquí invocas tu endpoint/store: await salesStore.createSale(salePayload);
 };
 const clientsFields = [
     { title: 'Nombre', value: 'name', type: 'text' },
@@ -147,12 +136,10 @@ const clientsFields = [
 <template>
     <v-container fluid class="pa-4">
         <v-row>
-            <!-- COLUMNA IZQUIERDA: Formulario Principal -->
             <v-col cols="12" md="7" lg="8">
                 <v-card class="pa-6" elevation="2" rounded="lg">
                     <h2 class="text-h5 font-weight-bold mb-4">Registro de Venta</h2>
 
-                    <!-- Información del Cliente -->
                     <v-row>
                         <v-col cols="12" sm="6">
                             <v-autocomplete 
@@ -173,7 +160,6 @@ const clientsFields = [
 
                     <v-divider class="my-4"></v-divider>
 
-                    <!-- Selector de Productos -->
                     <h3 class="text-subtitle-1 font-weight-bold mb-2">Agregar Productos</h3>
                     <v-autocomplete
                         v-model="selectedProductInput"
@@ -189,21 +175,18 @@ const clientsFields = [
 
                     />
 
-                    <!-- Lista Editable de Productos Agregados -->
                     <div class="mt-4">
                         <div 
                             v-for="(item, index) in cartItems" 
                             :key="item.productId" 
                             class="d-flex align-center ga-3 mb-3 pa-3 rounded-lg border bg-grey-lighten-5"
                         >
-                            <!-- Detalle del Producto -->
                             <div class="flex-grow-1">
                                 <div class="font-weight-bold text-body-1">{{ item.name }}</div>
                                 <div  class="text-caption text-grey"> Cantidad en inventario: {{ item.totalQuantity }}</div>
                                 <div class="text-caption text-grey">Subtotal: ${{ (item.quantity * item.price).toFixed(2) }}</div>
                             </div>
 
-                            <!-- Input Cantidad -->
                             <div style="width: 100px;">
                                 <v-text-field
                                     v-model.number="item.quantity"
@@ -216,7 +199,6 @@ const clientsFields = [
                                 />
                             </div>
 
-                            <!-- Input Precio -->
                             <div style="width: 120px;">
                                 <v-text-field
                                     v-model.number="item.price"
@@ -225,10 +207,10 @@ const clientsFields = [
                                     step="0.01"
                                     variant="solo-filled"
                                     hide-details
+                                    :disabled="!authStore.hasRole('Administrador')"
                                 />
                             </div>
 
-                            <!-- Botón Eliminar -->
                             <v-btn 
                                 icon="mdi-delete-outline" 
                                 color="error" 
@@ -295,12 +277,10 @@ const clientsFields = [
                 </v-card>
             </v-col>
 
-            <!-- COLUMNA DERECHA: Resumen de Pago (Estilo Summary Card) -->
             <v-col cols="12" md="5" lg="4">
                 <v-card class="pa-6 bg-grey-lighten-4" elevation="3" rounded="lg">
                     <h3 class="text-h6 font-weight-bold mb-4">Resumen</h3>
 
-                    <!-- Lista simplificada del Resumen -->
                     <div class="mb-4">
                         <div 
                             v-for="item in cartItems" 
@@ -314,7 +294,6 @@ const clientsFields = [
 
                     <v-divider class="my-4"></v-divider>
 
-                    <!-- Total -->
                     <div class="d-flex justify-space-between align-center mb-6">
                         <span class="text-h6 font-weight-medium">Total</span>
                         <span class="text-h5 font-weight-bold text-primary">${{ totalSale.toFixed(2) }}</span>
@@ -324,7 +303,6 @@ const clientsFields = [
                         <span class="text-h5 font-weight-bold text-primary">Bs.{{ (totalSale * dolarPrice).toFixed(2) }}</span>
                     </div>
 
-                    <!-- Botón de Confirmación -->
                     <v-btn 
                         block 
                         color="primary" 
@@ -332,7 +310,7 @@ const clientsFields = [
                         rounded="pill" 
                         elevation="2"
                         :loading="loading"
-                        :disabled="cartItems.length === 0 || !selectedClient||!payment.dolarValue|!payment.method||payment.status"
+                        :disabled="cartItems.length === 0 || !selectedClient||!payment.dolarValue|!payment.method||!payment.status"
                         @click="handleSubmit"
                     >
                         Procesar Venta

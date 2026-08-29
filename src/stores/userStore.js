@@ -8,19 +8,8 @@ export const useUserStore = defineStore('user', ()=>{
     const url = '/usuarios'
     const items = ref([])
     const itemCount = ref(0)
-    const activeUser = ref({})
     const error = ref({})
-    async function loginUser(user) {
-        try{
-            const response = await apiCall('post', `${url}/login`, user)
-            localStorage.setItem('userToken', response.data.token)
-            alertStore.showAlert('success','El usuario  ha iniciado sesion con exito', 'Sesion iniciada')
-            return response.data.message
-        }catch(error){
-            throw error
-        }
-       
-    }
+    
     async function addItem(user) {
         try{
             console.log(user)
@@ -49,5 +38,5 @@ export const useUserStore = defineStore('user', ()=>{
     
    
     
-    return{  loginUser,addItem , getItem, items, itemCount}
+    return{  addItem , getItem, items, itemCount}
 })
