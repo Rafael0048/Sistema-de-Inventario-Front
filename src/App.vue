@@ -79,8 +79,11 @@ const items = ref([
   { title: 'Productos', icon: 'mdi-information', to: '/productos', requiredRole: ['Vendedor', 'Administrador'] },
   { title: 'Clientes', icon: 'mdi-card-account-details', to: '/clientes', requiredRole: ['Vendedor', 'Administrador'] },
   { title: 'Vender', icon: 'mdi-store-plus', to: '/registrarVenta', requiredRole: ['Vendedor', 'Administrador'] },
-  { title: 'Ventas', icon: 'mdi-cash-register', to: '/ventas', requiredRole: ['Vendedor', 'Administrador'] },
-  { title: 'Movimientos', icon: 'mdi-account-group', to: '/movimientos', requiredRole: 'Administrador' },
+  { title: 'Ventas', icon: 'mdi-cash-register', to: '/ventas', requiredRole: 'Administrador' },
+  { title: 'Movimientos', icon: 'mdi-chart-bar', to: '/movimientos', requiredRole: 'Administrador' },
+  { title: 'Proveedores', icon: 'mdi-account-tie', to: '/proveedores', requiredRole: 'Administrador' },
+  { title: 'Comprar', icon: 'mdi-cart-plus', to: '/registrarCompra', requiredRole: 'Administrador' },
+  { title: 'Compras', icon: 'mdi-cart-arrow-down', to: '/compras', requiredRole: 'Administrador' },
   { title: 'Usuarios', icon: 'mdi-account-group', to: '/usuarios', requiredRole: 'Administrador' },
 ])
 

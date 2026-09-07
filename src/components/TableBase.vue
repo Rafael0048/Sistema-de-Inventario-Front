@@ -1,233 +1,325 @@
 <script setup>
-   import {ref, onMounted} from 'vue'
-   import {useProductStore} from '@/stores/productStore.js'
-   import AddModal from '@/components/AddModal.vue'
-   import SubTable from '@/components/SubTable.vue'
-   import { useAuthStore } from '../stores/authStore'
-   import router from '@/router' 
+import { ref, onMounted } from "vue";
+import { useProductStore } from "@/stores/productStore.js";
+import AddModal from "@/components/AddModal.vue";
+import SubTable from "@/components/SubTable.vue";
+import { useAuthStore } from "../stores/authStore";
+import router from "@/router";
+import EditModal from "./EditModal.vue";
+import DeleteModal from "./DeleteModal.vue";
+const authStore = useAuthStore();
+const openModal = ref(false);
+const openDeleteModal = ref(false);
+const data = ref({});
+const loading = ref(false);
+const subTableData = ref([]);
+const openSubTableModal = ref(false);
+const search = ref("");
+const itemsPerPage = ref(10);
+const subTableFather = ref({});
+const props = defineProps({
+  items: {
+    type: Array,
+    required: true,
+  },
+  headers: {
+    type: Array,
+    required: true,
+  },
+  fields: {
+    type: Array,
+    required: true,
+  },
+  store: {
+    type: Object,
+    required: true,
+  },
+  subTableHeaders: {
+    type: Array,
+  },
+  nameSpace: {
+    type: String,
+    required: true,
+  },
+  subNameSpace: {
+    type: String,
+  },
+  subFields: {
+    type: Array,
+  },
+  subStore: {
+    type: Object,
+  },
+});
 
-   const authStore = useAuthStore()
-   const openModal = ref(false)
-   const openDeleteModal = ref(false)
-   const data = ref({})
-   const loading = ref(false)
-   const subTableData = ref([])
-   const openSubTableModal = ref(false)
-    const search = ref('')
-    const itemsPerPage = ref(10)
-   const subTableFather = ref({})
-    const props = defineProps({
-        items: {
-            type: Array,
-            required: true
-        },
-        headers: {
-            type: Array,
-            required: true
-        },
-        fields: {
-            type: Array,
-            required: true
-        },
-        store: {
-            type: Object,
-            required: true
-        },
-        subTableHeaders: {
-            type: Array,
-        },
-        nameSpace:{
-            type: String,
-            required: true
-        },
-        subNameSpace:{
-            type: String,
-        },
-        subFields: {
-            type: Array
-        },
-        subStore : {
-            type : Object
-        }
-        
-    })
+function editItemModal(item) {
+  data.value = item;
+  openModal.value = true;
+}
+function deleteItemModal(item) {
+  data.value = item;
+  openDeleteModal.value = true;
+}
 
-    function editItemModal(item){
-        data.value = item
-        openModal.value = true
-    }
-    function deleteItemModal(item){
-        data.value = item
-        openDeleteModal.value = true
-    }
+async function editItem(item) {
+  try {
+    await props.store.editItem(item);
+    loading.value = false;
+    openModal.value = false;
+  } catch (error) {
+    console.error("Error editando un item:", error);
+    loading.value = false;
+    openModal.value = false;
+  }
+}
+async function deleteItem(item) {
+  try {
+    await props.store.deleteItem(item);
+    loading.value = false;
+    openDeleteModal.value = false;
+  } catch (error) {
+    console.error("Error eliminando un item:", error);
+    loading.value = false;
+    openDeleteModal.value = false;
+  }
+}
+function viewSubTable(item) {
+  subTableData.value = item;
+  openSubTableModal.value = true;
+}
 
-    async function editItem(item){
-        try{
-            await props.store.editItem(item)
-            loading.value = false
-            openModal.value = false
-        }catch(error){
-            console.error('Error editando un item:', error)
-            loading.value = false
-            openModal.value = false
-        }
-    }
-    async function deleteItem(item){
-        try{
-            await props.store.deleteItem(item)
-            loading.value = false
-            openDeleteModal.value = false
-        }catch(error){
-            console.error('Error eliminando un item:', error)
-            loading.value = false
-            openDeleteModal.value = false
-        }
-    }
-    function viewSubTable(item){
-
-        subTableData.value = item
-        openSubTableModal.value = true
-    }
-  
-
-let timeoutId = null
-
+let timeoutId = null;
 
 const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
-  loading.value = true  
-  clearTimeout(timeoutId)
+  loading.value = true;
+  clearTimeout(timeoutId);
 
   timeoutId = setTimeout(async () => {
     try {
-     await props.store.getItem(page,itemsPerPage,search,sortBy)
+      await props.store.getItem(page, itemsPerPage, search, sortBy);
     } catch (error) {
-      console.error('Error cargando datos:', error)
+      console.error("Error cargando datos:", error);
     } finally {
-      loading.value = false
+      loading.value = false;
     }
-  }, 400) 
+  }, 400);
+};
+async function viewMovements(item) {
+  router.push({
+    path: "/movimientos",
+    query: { product: item.name },
+  });
 }
-async function viewMovements(item){
-       router.push({
-  path: '/movimientos',
-  query: { product: item.name }
-});
+async function viewAllPurchases(fatherName) {
+    let query = {}
+    if(props.nameSpace === 'Proveedores'){
+        query = { provider: fatherName }
+    }else{
+        query = { product: fatherName }
     }
+    router.push({
+    path: "/compras",
+    query: query,
+  });
+}
 
 </script>
 
 <template>
-    <div >
+  <div>
+    <v-card color="background" class="pa-2 h-100 d-flex flex-column">
+      <v-card-title class="text-center text-uppercase">
+        {{ props.nameSpace }}
+      </v-card-title>
 
-        <v-card color="background" class="pa-2 h-100 d-flex flex-column">
-            <v-card-title class="text-center text-uppercase">
-                {{ props.nameSpace }}
-            </v-card-title>
-            
-            <div class="pa-4 d-flex align-center justify-space-between">
-                <AddModal :fields="props.fields" :store="props.store" :nameSpace="props.nameSpace" />
-                <v-text-field append-inner-icon="mdi-magnify" max-width="350px" label="Buscar" v-model="search" variant="solo-filled" hide-details density="compact" autocomplete="off"/>
-            </div>
-                
-            
+      <div class="pa-4 d-flex align-center justify-space-between">
+        <AddModal
+          :fields="props.fields"
+          :store="props.store"
+          :nameSpace="props.nameSpace"
+        />
+        <v-text-field
+          append-inner-icon="mdi-magnify"
+          max-width="350px"
+          label="Buscar"
+          v-model="search"
+          variant="solo-filled"
+          hide-details
+          density="compact"
+          autocomplete="off"
+        />
+      </div>
 
-            <v-data-table-server 
-                class="custom-table flex-grow-1 d-flex flex-column"
-                :items="props.items" 
-                :headers="props.headers" 
-                :no-data-text="`No se han encontrado ${props.nameSpace} `" 
-                :items-per-page-text="`${props.nameSpace} por página `"
-                density="comfortable"
-                :items-length="props.store.itemCount"
-                :loading="loading"
-                :search="search"
-                @update:options="loadItems"
+      <v-data-table-server
+        class="custom-table flex-grow-1 d-flex flex-column"
+        :items="props.items"
+        :headers="props.headers"
+        :no-data-text="`No se han encontrado ${props.nameSpace} `"
+        :items-per-page-text="`${props.nameSpace} por página `"
+        density="comfortable"
+        :items-length="props.store.itemCount"
+        :loading="loading"
+        :search="search"
+        @update:options="loadItems"
+      >
+        <template #item.quantity="{ item }">
+          <span
+            :class="
+              item.quantity > 40
+                ? 'text-success font-weight-bold'
+                : 'text-error font-weight-bold'
+            "
+          >
+            {{ item.quantity }}
+          </span>
+        </template>
+
+        <template v-slot:item.actions="{ item }">
+          <v-hover v-slot="{ isHovering, props }">
+            <v-btn
+              variant="plain"
+              icon
+              @click="editItemModal(item)"
+              :color="isHovering ? 'primary' : undefined"
+              v-bind="props"
             >
-            
-                <template v-slot:item.actions="{ item }" v-if="authStore.hasRole('Administrador')">
-                    <v-hover v-slot="{ isHovering, props }">
-                        <v-btn variant="plain" icon @click="editItemModal(item)" :color="isHovering ? 'primary' : undefined" v-bind="props">
-                            <v-icon>mdi-pencil</v-icon>
-                        </v-btn>
-                    </v-hover>
-                    <v-hover v-slot="{ isHovering, props }">
-                        <v-btn variant="plain" icon @click="deleteItemModal(item)" :color="isHovering ? 'error' : undefined" v-bind="props">
-                            <v-icon>mdi-delete</v-icon>
-                        </v-btn>
-                    </v-hover>
-                    <template v-if="props.nameSpace==='Productos'">
-                         <v-hover v-slot="{ isHovering, props }" >
-                        <v-btn icon @click="viewMovements(item)" :color="isHovering ? 'primary' : undefined" v-bind="props">
-                            <v-icon>mdi-eye</v-icon>
-                        </v-btn>
-                        </v-hover>
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+          </v-hover>
+          <v-hover
+            v-slot="{ isHovering, props }"
+            v-if="authStore.hasRole('Administrador')"
+          >
+            <v-btn
+              variant="plain"
+              icon
+              @click="deleteItemModal(item)"
+              :color="isHovering ? 'error' : undefined"
+              v-bind="props"
+            >
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+          </v-hover>
+          <template v-if="props.nameSpace === 'Productos'">
+            <v-hover v-slot="{ isHovering, props }">
+              <v-btn
+                icon
+                @click="viewMovements(item)"
+                :color="isHovering ? 'primary' : undefined"
+                v-bind="props"
+              >
+                <v-icon>mdi-eye</v-icon>
+              </v-btn>
+            </v-hover>
+          </template>
+        </template>
 
-                    </template>
-                </template>
+        <template v-slot:item.lot="{ item }">
+          <v-btn
+            variant="tonal"
+            @click="
+              () => {
+                viewSubTable(item.lot);
+                subTableFather = item;
+              }
+            "
+            >Ver lotes</v-btn
+          >
+        </template>
+        <template v-slot:item.purchases="{ item }">
+          <v-btn
+            variant="tonal"
+            @click="
+              () => {
+                viewSubTable(item.purchases);
+                subTableFather = item;
+              }
+            "
+            >Ver compras</v-btn
+          >
+        </template>
+        <template v-slot:item.debt="{ item }">
+          <v-chip
+            v-if="item.debt"
+            color="error"
+            size="small"
+            variant="tonal"
+            class="font-weight-medium"
+          >
+            Pendiente
+          </v-chip>
+          <v-chip
+            v-else
+            color="success"
+            size="small"
+            variant="tonal"
+            class="font-weight-medium"
+          >
+            Al día
+          </v-chip>
+        </template>
+      </v-data-table-server>
+    </v-card>
 
-                <template v-slot:item.lot="{ item }">
-                    <v-btn variant="tonal" @click="()=>{viewSubTable(item.lot); subTableFather = item}">Ver lotes</v-btn>
-                </template>
-            </v-data-table-server>
-        </v-card>
+    <!-- Modales -->
+    <EditModal
+      v-model="openModal"
+      :data="data"
+      :store="props.store"
+      :fields="props.fields"
+    />
+    <DeleteModal v-model="openDeleteModal" :data="data" :store="props.store" />
 
-        <!-- Modales -->
-        <v-dialog v-model="openModal" max-width="500">
-            <v-card>
-                <v-card-title>Editar {{ data.name }}</v-card-title>
-                <v-card-text>
-                    <v-form>
-                        <template v-for="field in props.fields" :key="field.value">
-                            <v-label>
-                                {{ field.title }}
-                            </v-label>
-                            <v-text-field   v-model="data[field.value]" :placeholder="field.title" :type="field.type" variant="solo-filled"/>
-                        </template>
-                    </v-form>
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="error" @click="openModal = false">Cancelar</v-btn>
-                    <v-btn color="success" variant="outlined" @click="editItem(data)" :loading="loading.value">Guardar</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
+    <v-dialog v-model="openSubTableModal" max-width="1200">
+      <v-card color="background">
+        <v-row>
+          <v-col class="d-flex align-center pt-5">
+            <v-card-title
+              >{{ props.subNameSpace }} de
+              {{ subTableFather.name }}</v-card-title
+            >
+            <v-hover v-slot="{ isHovering, props }">
+              <v-btn
+                icon
+                @click="viewAllPurchases(subTableFather.name)"
+                :color="isHovering ? 'primary' : undefined"
+                v-bind="props"
+              >
+                <v-icon>mdi-eye</v-icon>
+              </v-btn>
+            </v-hover>
 
-        <v-dialog v-model="openDeleteModal" max-width="500">
-            <v-card >
-                <v-card-title>Eliminar {{ data.name }}</v-card-title>
-                <v-card-text>
-                    <p>¿Estás seguro de que quieres eliminar este elemento?</p>
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="primary" @click="openDeleteModal = false">Cancelar</v-btn>
-                    <v-btn color="error" variant="outlined" @click="deleteItem(data)" :loading="loading.value">Eliminar</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
-
-        <v-dialog v-model="openSubTableModal" max-width="800">
-            <v-card color="background">
-                <v-card-title>{{ props.subNameSpace }} de {{ subTableFather.name }}</v-card-title>
-                <v-card-text>
-                    <SubTable :items="subTableData" :headers="subTableHeaders" :store="props.subStore" :fields="props.subFields" :father="subTableFather" :nameSpace="props.subNameSpace" />
-                </v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="primary" variant="outlined" @click="openSubTableModal = false">Cerrar</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
-
-    </div>
+           
+          </v-col>
+        </v-row>
+        <v-card-text>
+          <SubTable
+            :headers="subTableHeaders"
+            :store="props.subStore"
+            :fields="props.subFields?props.subFields:[]"
+            :father="subTableFather"
+            :nameSpace="props.subNameSpace"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            variant="outlined"
+            @click="openSubTableModal = false"
+            >Cerrar</v-btn
+          >
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
 </template>
 
 <style scoped>
- .custom-table {
+.custom-table {
   border-radius: 12px !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  background: #18181c !important; 
+  background: #18181c !important;
   overflow: hidden;
 }
 
@@ -264,6 +356,4 @@ async function viewMovements(item){
   border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
   color: #a1a1aa !important;
 }
-    
-
 </style>

@@ -12,7 +12,6 @@ export const useUserStore = defineStore('user', ()=>{
     
     async function addItem(user) {
         try{
-            console.log(user)
             const response = await apiCall('post', `${url}/register`, user)
             alertStore.showAlert('success','El usuario se ha registrado con exito', 'Registro completado')
             return response.data.message
@@ -35,8 +34,20 @@ export const useUserStore = defineStore('user', ()=>{
             alertStore.showAlert('error',error.message, 'Fallo al obtener los usuarios')
         }
     }
+     async function deleteItem(item){
+        try {
+            const response = await apiCall('delete',`${url}/${item.userId}`)
+            await getItem()
+            alertStore.showAlert('success',`Se ha eliminado el usuario ${item.name}`, 'Usuario eliminado correctamente')
+
+        } catch (error) {
+            console.log(error)
+            alertStore.showAlert('error',error.message, 'Fallo al eliminar el usuario')
+
+        }
+    }
     
    
     
-    return{  addItem , getItem, items, itemCount}
+    return{  addItem , getItem, items, itemCount, deleteItem}
 })

@@ -12,7 +12,7 @@ const headers = ref([
     { title: 'Apellido', value: 'lastName' },
     { title: 'Teléfono', value: 'phone' },
     { title: 'Identificación', value: 'identification' },
-  authStore.hasRole('Administrador')?{title : 'Acciones', value: 'actions'}:{}
+    {title : 'Acciones', value: 'actions'}
 ])
 const fields = ref([
     { title: 'Nombre', value: 'name', type: 'text' },

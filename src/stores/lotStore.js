@@ -18,6 +18,7 @@ export const useLotStore = defineStore('lot', () => {
   async function getItem(father) {
     try {
       const response = await apiCall('get', `${url}/${father.productId}`)
+
       items.value = response.data
     } catch (error) {
       alertStore.showAlert('error', error.message, 'Fallo al obtener los lotes')
@@ -43,8 +44,11 @@ export const useLotStore = defineStore('lot', () => {
 
   async function editItem(item) {
     try {
+      item.userId = authStore.activeUser.id
       await apiCall('put', `${url}/${item.lotId}`, item)
       await getItem({ productId: item.productId })
+      await producStore.getItem()
+
       alertStore.showAlert('success', `Se ha editado el lote`, 'Lote editado correctamente')
     } catch (error) {
       alertStore.showAlert('error', error.message, 'Fallo al editar el lote')
@@ -75,7 +79,6 @@ export const useLotStore = defineStore('lot', () => {
                 sortBy : sortBy
             }
       const response = await apiCall('get', `${url}/movements`,params)
-      console.log(response)
       movements.value = response.data.rows
       metrics.value = response.data.metrics
       movementsCount.value = response.data.count

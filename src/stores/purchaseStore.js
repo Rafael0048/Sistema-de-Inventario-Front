@@ -3,19 +3,22 @@ import {ref} from 'vue'
 import axios from 'axios'
 import apiCall from '../utiliy/ApiCall'
 import { useAlertStore } from './alertStore'
-export const useSaleStore = defineStore('sale', ()=>{
+export const usePurchaseStore = defineStore('purchase', ()=>{
     const alertStore = useAlertStore()
-    const url = '/ventas'
+    const url = '/compras'
     const items = ref([])
     const itemCount = ref(0)
-    async function getItem(page,itemsPerPage,search,sortBy){
+    async function getItem(father,page,itemsPerPage,filters,sortBy){
         try{
             const params ={
                 page : page,
                 itemsPerPage: itemsPerPage,
-                search : search,
+                product : filters?filters.product : null,
+                provider : filters?filters.provider : null,
+                providerId : null,
                 sortBy : sortBy
             }
+            father? params.providerId = father.providerId : null
             const response = await apiCall('get',url, params)
             
 
@@ -32,38 +35,40 @@ export const useSaleStore = defineStore('sale', ()=>{
         try {
             const response = await apiCall('post',url,item)
             await getItem()
-            alertStore.showAlert('success',`Se ha agregado la venta ${response.data.saleId}`, 'Venta agregada correctamente')
+            alertStore.showAlert('success',`Se ha agregado la compra ${response.data.purchaseId}`, 'Compra agregada correctamente')
 
         } catch (error) {
-            alertStore.showAlert('error',error.message, 'Fallo al agregar la venta')
+            alertStore.showAlert('error',error.message, 'Fallo al agregar la compra')
 
         }
     }
     async function editItem(item){
         try{
-            const response = await apiCall('put',`${url}/${item.saleId}`,item)
+            const response = await apiCall('put',`${url}/${item.purchaseId}`,item)
             await getItem()
-            alertStore.showAlert('success',`Se ha editado la venta ${response.data.saleId}`, 'Venta editada correctamente')
+            alertStore.showAlert('success',`Se ha editado la compra ${response.data.purchaseId}`, 'Compra editada correctamente')
 
         }catch(error){
-            alertStore.showAlert('error',error.message, 'Fallo al editar la venta')
+            alertStore.showAlert('error',error.message, 'Fallo al editar la compra')
 
         }
     }
     async function deleteItem(item){
         try {
-            const response = await apiCall('delete',`${url}/${item.saleId}`)
+            const response = await apiCall('delete',`${url}/${item.purchaseId}`)
             await getItem()
-            alertStore.showAlert('success',`Se ha eliminado la venta ${response.data.saleId}`, 'Venta eliminada correctamente')
+            alertStore.showAlert('success',`Se ha eliminado la compra ${response.data.purchaseId}`, 'Compra eliminada correctamente')
 
         } catch (error) {
-            alertStore.showAlert('error',error.message, 'Fallo al eliminar la venta')
+            console.log(error)
+            alertStore.showAlert('error',error.message, 'Fallo al eliminar la compra')
 
         }
     }
-    async function addPayment(payment, saleId){
+    async function addPayment(payment, purchase){
         try {
-            payment.saleId = saleId
+            payment.purchaseId = purchase.purchaseId
+            payment.providerId = purchase.providerId
             const response = await apiCall('post',`${url}/payment`,payment)
             await getItem()
             alertStore.showAlert('success',`Se ha agregado el pago de ${payment.dolarValue} USD`, 'Pago agregado correctamente')
@@ -75,7 +80,6 @@ export const useSaleStore = defineStore('sale', ()=>{
             }
     async function editPayment(paymentId, payment){
         try{
-            console.log(payment)
             const response = await apiCall('put',`${url}/payment/${paymentId}`,payment)
             await getItem()
             alertStore.showAlert('success',`Se ha editado el pago de ${payment.dolarValue} USD`, 'Pago editado correctamente')

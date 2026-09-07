@@ -1,14 +1,19 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
-import { useSaleStore } from "../stores/saleStore"; 
+import { usePurchaseStore } from "../stores/purchaseStore";
 import { useAuthStore } from '../stores/authStore'
+import { useRoute } from 'vue-router';
 const authStore = useAuthStore()
-const saleStore = useSaleStore();
-const sales = ref([]);
+const purchaseStore = usePurchaseStore();
 const loading = ref(false);
 const dialog = ref(false);
 const dialogPayment = ref(false);
-const selectedSale = ref(null);
+const selectedPurchase = ref(null);
+const route = useRoute();
+
+const productFilter = route.query.product;
+const providerFilter = route.query.provider;
+let timeoutId = '';
 const payment = ref({
   dolarValue: 0,
   bsValue: 0,
@@ -16,9 +21,13 @@ const payment = ref({
   status: "",
   date: "",
 });
+const filters = ref({
+  search: '',
+  product :  productFilter || null,
+  provider : providerFilter || null
+});
 const editingPaymentId = ref(null); 
-const search = ref("");
-let timeoutId = null;
+
 const startEdit = (pay) => {
   editingPaymentId.value = pay.paymentId;
   payment.value.status = pay.status; 
@@ -30,28 +39,31 @@ const cancelEdit = () => {
 
 const saveStatus = async (pay) => {
   try {
-    await saleStore.editPayment(pay.paymentId, {
+    await purchaseStore.editPayment(pay.providerPaymentId, {
       ...pay,
       status: payment.value.status
     });
 
     pay.status = payment.value.status; 
-    const updatedSale = saleStore.items.find(s => s.saleId === selectedSale.value.saleId);
-    if (updatedSale) {
-      selectedSale.value.status = updatedSale.status;
+    const updatedPurchase = purchaseStore.items.find(p => p.purchaseId === selectedPurchase.value.purchaseId);
+    if (updatedPurchase) {
+        
+      selectedPurchase.value.status = updatedPurchase.status;
     }
     cancelEdit();
   } catch (error) {
     console.error("Error actualizando el estado:", error);
   }
 };
+const itemsPerPage = ref(10)
+
 const dolarPrice = ref(0)
 const isUserTypingBs = ref(false);
 const headers = [
-  { title: "ID Venta", key: "saleId", align: "start" },
-  { title: "Cliente", key: "clientName", align: "start" },
+  { title: "ID Compra", key: "purchaseId", align: "start" },
+  { title: "Proveedor", key: "provider.name", align: "start" },
   { title: "Fecha", key: "date", align: "start" },
-  { title: "Total", key: "totalSale", align: "end" },
+  { title: "Total", key: "totalPurchase", align: "end" },
   { title: "Estado", key: "status", align: "center" },
   { title: "Acciones", key: "actions", align: "center", sortable: false },
 ];
@@ -59,7 +71,6 @@ const payMethods = ["Efectivo", "Pago móvil", "Transferencia", "Crédito"];
 const statusOptions = ["Pendiente", "Confirmado", "Parcial"];
 
 onMounted(async () => {
-  await saleStore.getItem();
   fetch('https://ve.dolarapi.com/v1/dolares/oficial')
         .then(response => response.json())
         .then(data => {
@@ -97,15 +108,16 @@ const formatBsOnBlur = () => {
 
 async function addPayment() {
   try {
-    await saleStore.addPayment(payment.value, selectedSale.value.saleId);
+    console.log(selectedPurchase.value);
+    await purchaseStore.addPayment(payment.value, selectedPurchase.value);
     dialogPayment.value = false;
 
-    const updatedSale = saleStore.items.find(
-      (s) => s.saleId === selectedSale.value.saleId
+    const updatedPurchase = purchaseStore.items.find(
+      (p) => p.purchaseId === selectedPurchase.value.purchaseId
     );
 
-    if (updatedSale) {
-      selectedSale.value = { ...updatedSale };
+    if (updatedPurchase) {
+      selectedPurchase.value = { ...updatedPurchase };
     }
 
     payment.value = {
@@ -121,8 +133,8 @@ async function addPayment() {
 }
 
 
-const openDetail = (sale) => {
-  selectedSale.value = sale;
+const openDetail = (purchase) => {
+  selectedPurchase.value = purchase;
   dialog.value = true;
 };
 
@@ -132,7 +144,7 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
 
   timeoutId = setTimeout(async () => {
     try {
-     await saleStore.getItem( page, itemsPerPage, search, sortBy)
+     await purchaseStore.getItem(null,page,itemsPerPage,filters.value,sortBy)
     } catch (error) {
       console.error('Error cargando datos:', error)
     } finally {
@@ -140,55 +152,89 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
     }
   }, 400) 
 }
+watch(filters.value,async(newVal)=>{
+ await loadItems({ page: 1, itemsPerPage: itemsPerPage.value, sortBy: [], filters : newVal  });
+},{deep:true})
 </script>
 
 <template>
   <v-container fluid class="pa-6">
+      
     <div class="d-flex justify-space-between align-center mb-6">
       <div>
-        <h1 class="text-h4 font-weight-bold">Ventas</h1>
+        <h1 class="text-h4 font-weight-bold">Compras</h1>
         <p class="text-subtitle-2 text-grey">
           Historial de transacciones y detalles
         </p>
       </div>
     </div>
+    <v-card border elevation="0" class="pa-4 mb-6">
+      <v-row >
+        <v-col cols="12" sm="6" md="6">
+          <v-text-field
+            v-model="filters.provider"
+            density="compact"
+            variant="outlined"
+            label="Buscar por nombre de proveedor"
+            prepend-inner-icon="mdi-magnify"
+            clearable
+            hide-details
+            autocomplete="off"
+          />
+        </v-col>
+
+    
+       
+        <v-col cols="12" sm="6" md="6">
+          <v-text-field
+            v-model="filters.product"
+            density="compact"
+            variant="outlined"
+            label="Filtrar por producto"
+            prepend-inner-icon="mdi-package-variant"
+            clearable
+            hide-details
+            autocomplete="off"
+          />
+        </v-col>
+      </v-row>
+    </v-card>
 
     <v-card elevation="0" class="transparent-table">
-      <v-data-table-server
+      <v-data-table-server 
         class="custom-table"
         :headers="headers"
-        :items="saleStore.items"
+        :items="purchaseStore.items"
         :loading="loading"
-        :no-data-text="`No se han encontrado ventas `" 
-                :items-per-page-text="`Ventas por página `"
+        :no-data-text="`No se han encontrado compras `" 
+                :items-per-page-text="`Compras por página `"
                 density="comfortable"
-                :items-length="saleStore.itemCount"
-                :search="search"
+                :items-length="purchaseStore.itemCount"
                 @update:options="loadItems"
         hover
       >
       
 
-        <template #[`item.clientName`]="{ item }">
+        <template #[`item.provider.name`]="{ item }">
           <div class="d-flex align-center">
             <v-avatar color="primary" size="32" class="mr-3">
               <span class="text-caption font-weight-bold white--text">
                 {{
-                  item.client?.name
-                    ? item.client.name.charAt(0).toUpperCase()
+                  item.provider?.name
+                    ? item.provider.name.charAt(0).toUpperCase()
                     : "C"
                 }}
               </span>
             </v-avatar>
             <span class="font-weight-medium">{{
-              item.client?.name || "Cliente Ocasional"
+              item.provider?.name || "Proveedor Ocasional"
             }}</span>
           </div>
         </template>
 
-        <template #[`item.totalSale`]="{ item }">
+        <template #[`item.totalPurchase`]="{ item }">
           <span class="font-weight-bold text-subtitle-1"
-            >${{ Number(item.totalSale).toFixed(2) }}</span
+            >${{ Number(item.totalPurchase).toFixed(2) }}</span
           >
         </template>
 
@@ -201,17 +247,17 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
             @click="openDetail(item)"
           />
         </template>
-      </v-data-table-server>
+      </v-data-table-server >
     </v-card>
 
     <v-dialog v-model="dialog" max-width="650px" scrollable>
-      <v-card v-if="selectedSale" rounded="xl" class="pa-2">
+      <v-card v-if="selectedPurchase" rounded="xl" class="pa-2">
         <v-card-title class="d-flex justify-space-between align-center pa-4">
           <div>
             <span class="text-h6 font-weight-bold"
-              >Detalle de Venta #{{ selectedSale.saleId }}</span
+              >Detalle de Compra #{{ selectedPurchase.purchaseId }}</span
             >
-            <div class="text-caption text-grey">{{ selectedSale.date }}</div>
+            <div class="text-caption text-grey">{{ selectedPurchase.date }}</div>
           </div>
           <v-btn icon="mdi-close" variant="text" @click="dialog = false" />
         </v-card-title>
@@ -221,15 +267,15 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
         <v-card-text class="pa-4">
           <v-row class="mb-4 bg-grey-lighten-4 rounded-lg pa-2">
             <v-col cols="6">
-              <div class="text-caption text-grey">Cliente</div>
+              <div class="text-caption text-grey">Proveedor</div>
               <div class="font-weight-medium">
-                {{ selectedSale.client?.name || "N/A" }}
+                {{ selectedPurchase.provider?.name || "N/A" }}
               </div>
             </v-col>
             <v-col cols="6">
               <div class="text-caption text-grey">Estado</div>
               <div class="font-weight-medium">
-                {{ selectedSale.status || "N/A" }}
+                {{ selectedPurchase.status || "N/A" }}
               </div>
             </v-col>
           </v-row>
@@ -240,8 +286,8 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
 
           <v-list class="pa-0">
             <v-list-item
-              v-for="mov in selectedSale.productosAsociados"
-              :key="mov.saleMid"
+              v-for="mov in selectedPurchase.movements"
+              :key="mov.purchaseMid"
               class="mb-2 border rounded-lg pa-3"
             >
               <template #prepend>
@@ -274,7 +320,7 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
 
           <v-list class="pa-0">
             <v-list-item
-              v-for="pay in selectedSale.payments"
+              v-for="pay in selectedPurchase.payments"
               :key="pay.paymentId"
               class="mb-2 border rounded-lg pa-3"
             >
@@ -347,9 +393,9 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
           <v-divider class="my-4"></v-divider>
 
           <div class="d-flex justify-space-between align-center">
-            <span class="text-h6 font-weight-bold">Total Venta</span>
+            <span class="text-h6 font-weight-bold">Total Compra</span>
             <span class="text-h5 font-weight-bold text-primary"
-              >${{ Number(selectedSale.totalSale).toFixed(2) }}</span
+              >${{ Number(selectedPurchase.totalPurchase).toFixed(2) }}</span
             >
           </div>
         </v-card-text>

@@ -1,7 +1,13 @@
 <script setup>
  import {ref, onMounted} from 'vue'
  import AddModal from './AddModal.vue'
+ import EditModal from './EditModal.vue'
+ import DeleteModal from './DeleteModal.vue'
  const items = ref({})
+ const data = ref({})
+ const openModal = ref(false)
+const openDeleteModal = ref(false)
+
  const props = defineProps({
     
         headers: {
@@ -10,7 +16,7 @@
         },
         fields: {
             type: Array,
-            required: true
+            required: false
         },
         store: {
             type: Object,
@@ -31,6 +37,8 @@
     })
     
     function editItemModal(item){
+        item.quantity = item.actualQuantity
+        item.oldQuantity = item.actualQuantity
         data.value = item
         openModal.value = true
     }
@@ -40,42 +48,38 @@
     }
 
     
-    async function deleteItem(item){
-        try{
-            await props.store.deleteItem(item)
-            loading.value = false
-            openDeleteModal.value = false
-        }catch(error){
-            console.error('Error eliminando un item:', error)
-            loading.value = false
-            openDeleteModal.value = false
-        }
-    }
+   
     onMounted(async()=>{
         await props.store.getItem(props.father)
     })
 </script>
 <template>
      <v-card color="background">
-            <AddModal  :fields="props.fields" :store="props.store" :fatherId="props.father" :nameSpace = "props.nameSpace" />
-
+        
 <v-data-table
                    class="custom-table" :items="props.store.items" :headers="props.headers" :no-data-text="`No se han encontrado ${props.nameSpace} `" :items-per-page-text="`${props.nameSpace} por página `" >
                     <template v-slot:item.actions="{ item }">
-                        <v-hover v-slot="{ isHovering, props }" >
-                        <v-btn icon @click="viewMovements(item)" :color="isHovering ? 'primary' : undefined" v-bind="props">
-                            <v-icon>mdi-eye</v-icon>
-                        </v-btn>
-                        </v-hover>
+                        <template v-if="props.nameSpace!='Compras'">
+                            <v-hover v-slot="{ isHovering, props }" >
+                            <v-btn icon @click="editItemModal(item)" :color="isHovering ? 'primary' : undefined" v-bind="props" >
+                                <v-icon>mdi-pencil</v-icon>
+                            </v-btn>
+                            </v-hover>
+
+                        </template>
                         <v-hover v-slot="{ isHovering, props }" >
                         <v-btn icon @click="deleteItemModal(item)" :color="isHovering ? 'error' : undefined" v-bind="props">
                             <v-icon>mdi-delete</v-icon>
                         </v-btn>
                         </v-hover>
+                        
                     </template>
                    
                 </v-data-table>
                 </v-card>  
+        <EditModal v-model="openModal" :data="data" :store="props.store" :fields="props.fields"/>
+        <DeleteModal v-model="openDeleteModal" :data="data" :store="props.store" />
+
 </template>
 <style scoped>
      .custom-table {

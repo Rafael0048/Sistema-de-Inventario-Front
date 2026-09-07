@@ -7,6 +7,9 @@ import SalesForm from '../pages/SalesForm.vue'
 import SalesView from '../pages/SalesView.vue'
 import UsersView from '../pages/UsersView.vue'
 import LotsMovements from '../pages/LotsMovements.vue'
+import ProviderView from '../pages/ProviderView.vue'
+import PurchaseForm from '../pages/PurchaseForm.vue'
+import PurchaseView from '../pages/PurchaseView.vue'
 import { useAuthStore } from '../stores/authStore.js'
 
 const router = createRouter({
@@ -45,7 +48,7 @@ const router = createRouter({
       path: '/ventas',
       name: 'Ventas',
       component: SalesView,
-      meta: { requiresAuth: true, roles: ['Vendedor', 'Administrador'] }
+      meta: { requiresAuth: true, roles: [ 'Administrador'] }
     },
     {
       path: '/usuarios',
@@ -58,8 +61,26 @@ const router = createRouter({
       component : LotsMovements,
       meta: { requiresAuth: true, roles: ['Administrador'] },
 
+    },
+    {
+      path : '/proveedores',
+      component : ProviderView,
+      meta: { requiresAuth: true, roles: ['Administrador'] },
+
+    },
+    {
+      path : '/registrarCompra',
+      component : PurchaseForm,
+      meta: { requiresAuth: true, roles: ['Administrador'] },
+    },
+    {
+      path : '/compras',
+      component : PurchaseView,
+      meta: { requiresAuth: true, roles: ['Administrador'] },
     }
   ]
+
+  
 })
 
 // Guardia global de navegación

@@ -131,6 +131,7 @@ const clientsFields = [
     { title: 'Teléfono', value: 'phone', type: 'text' },
     { title: 'Identificación', value: 'identification', type: 'text' }
 ] 
+
 </script>
 
 <template>

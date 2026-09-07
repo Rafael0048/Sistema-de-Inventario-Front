@@ -17,16 +17,16 @@ const filters = ref({
   product : productFilter || null
 });
 
-const movementTypes = ['ENTRADA', 'VENTA', 'MERMA', 'INGRESO', 'AJUSTE'];
+const movementTypes = ['ENTRADA', 'VENTA', 'AJUSTE POSITIVO', 'AJUSTE NEGATIVO'];
 
 const headers = [
-  { title: 'ID', key: 'movementId', sortable: true },
-  {title : 'Producto', key:'lot.product.name',sortable:true},
-  { title: 'Tipo', key: 'movementType', sortable: true },
-  { title: 'Cantidad', key: 'quantity', sortable: true },
+  { title: 'ID', key: 'movementId', sortable: false },
+  {title : 'Producto', key:'lot.product.name',sortable:false},
+  { title: 'Tipo', key: 'movementType', sortable: false },
+  { title: 'Cantidad', key: 'quantity', sortable: false },
   { title: 'Motivo', key: 'motive', sortable: false },
-  { title: 'Usuario', key: 'userId', sortable: true },
-  { title: 'Fecha', key: 'timeStamp', sortable: true },
+  { title: 'Usuario', key: 'userId', sortable: false },
+  { title: 'Fecha', key: 'timeStamp', sortable: false },
 ];
 let timeoutId = null
 
@@ -51,11 +51,11 @@ const loadItems = async ({ page, itemsPerPage, sortBy, search }) => {
 const getChipColor = (type) => {
   switch (type) {
     case 'ENTRADA':
-    case 'INGRESO':
+    case 'AJUSTE POSITIVO':
       return 'success';
     case 'VENTA':
       return 'info';
-    case 'MERMA':
+    case 'AJUSTE NEGATIVO':
       return 'error';
     default:
       return 'warning';
@@ -90,7 +90,7 @@ watch(filters.value,async(newVal)=>{
     </v-row>
 
     <v-row class="mb-6">
-      <v-col cols="12" sm="4">
+      <v-col cols="12" sm="3">
         <v-card border elevation="0" class="pa-4">
           <div class="d-flex align-center">
             <v-avatar color="success-lighten-4" size="48" class="me-4">
@@ -104,7 +104,7 @@ watch(filters.value,async(newVal)=>{
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="4">
+      <v-col cols="12" sm="3">
         <v-card border elevation="0" class="pa-4">
           <div class="d-flex align-center">
             <v-avatar color="info-lighten-4" size="48" class="me-4">
@@ -118,7 +118,7 @@ watch(filters.value,async(newVal)=>{
         </v-card>
       </v-col>
 
-      <v-col cols="12" sm="4">
+      <v-col cols="12" sm="3">
         <v-card border elevation="0" class="pa-4">
           <div class="d-flex align-center">
             <v-avatar color="error-lighten-4" size="48" class="me-4">
@@ -126,7 +126,20 @@ watch(filters.value,async(newVal)=>{
             </v-avatar>
             <div>
               <div class="text-caption text-medium-emphasis">Mermas y Ajustes (-)</div>
-              <div class="text-h5 font-weight-bold text-error">{{ lotStore.metrics.totalMermas }} unidades</div>
+              <div class="text-h5 font-weight-bold text-error" >{{ lotStore.metrics.totalAjustesNegativos }} unidades </div>
+            </div>
+          </div>
+        </v-card>
+      </v-col>
+       <v-col cols="12" sm="3">
+        <v-card border elevation="0" class="pa-4">
+          <div class="d-flex align-center">
+            <v-avatar color="error-lighten-4" size="48" class="me-4">
+              <v-icon color="info" size="28">mdi-cog-refresh-outline</v-icon>
+            </v-avatar>
+            <div>
+              <div class="text-caption text-medium-emphasis"> Ajustes (+)</div>
+              <div class="text-h5 font-weight-bold text-info" >{{ lotStore.metrics.totalAjustesPositivos }} unidades</div>
             </div>
           </div>
         </v-card>
@@ -140,7 +153,7 @@ watch(filters.value,async(newVal)=>{
             v-model="filters.search"
             density="compact"
             variant="outlined"
-            label="Buscar por motivo o usuario"
+            label="Buscar por motivo"
             prepend-inner-icon="mdi-magnify"
             clearable
             hide-details
@@ -202,7 +215,15 @@ watch(filters.value,async(newVal)=>{
 
       >
         <template #item.movementId="{ item }">
-          <span class="font-weight-medium">#{{ item.movementId }}</span>
+          <span class="font-weight-medium">{{ item.movementId }}</span>
+        </template>
+
+           <template #item.lot.product.name="{ item }">
+          <div >
+            <p class="pa-0 ma-0">{{ item.lot.product.name }}</p>
+            <p class="pa-0 ma-0">Lote #{{ item.lot.lotId }}</p>
+
+          </div>
         </template>
 
 
